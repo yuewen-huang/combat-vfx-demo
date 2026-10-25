@@ -5,24 +5,42 @@
 用大白话描述一套连斩（招式、节奏、颜色、粗细），得到一个带格斗游戏打击感的 Godot 4 场景：
 像素月牙刀光或轨迹刀光、星形命中火花、顿帧、击退、挑飞与下砸、震屏、连击数和终结技。
 它是一个 AI 代理技能，仓库本身也是一个可以直接打开运行的 Godot 工程。
-不需要美术素材、插件或自动加载，所有特效都由代码绘制。
+不需要外部美术素材或插件，所有特效都由代码绘制。
+
+## 本次更新：地震、自然群体与多技能编排
+
+作品库 → **多技能** → 添加节点并连线 → **编辑单招** → 应用返回 → 保存整段作品。
+原有作品卡片的「编排」打开流程图，点击卡片仍然播放。旧作品保留原事件、时间与配色。
+F11 / Alt+Enter 或工具栏按钮切换全屏，再次切换恢复原窗口。
+
+- 地震：四种传播及反向、七种基础材质、分段节奏、GPU 网格动画、软件适配器降级。
+- 群体：落叶、羽毛、沙漠三种独立材质；云团、路径流动、旋涡、球形聚集、爆散、飘落、消散。
+- 编排：顺序、并行、汇合、节点内参数、时间轴、手柄、前置状态预览、撤销与重做。
+- 配色：十种通用色板和自定义五色标；材质结构与运动独立于颜色。
+
+示例：`quake_*`、`public_autumn`、`public_feathers`、`public_sand`、`public_multiskill`。
+[公开内容与验证](references/public_release.md) · [事件参数](references/public_effects.md) · [流程图](references/multi_skill_flow.md)。
+
+性能工具测量指定设备与案例，3 ms 是地震基准目标；群体和并行演出需要独立测量。
+源码以非商业使用许可提供，见 [LICENSE](LICENSE)。
 
 ## 用 Godot 打开
 
 用 Godot 4.3+ 导入 `project.godot`，按 F5：画廊会列出所有连招。每组连招就是一个场景
 `combos/<名字>/<名字>.tscn`。在编辑器里打开场景就能看到舞台，按 F6 循环播放。
 按键：1 或空格重播，2 慢放，R 重置，Esc 回到画廊。
-画廊第一项是**手动精调**，可以自己编排新连招，也可以修改已有连招，见下文。
+作品库顶部「多技能」打开编排流程图，作品卡片「编排」打开已有作品，节点内编辑单招。
 
 ```
-project.godot   main.tscn（画廊）  editor.tscn（手动精调）
+project.godot   boot.tscn（加载）  main.tscn（作品库）  flow_editor.tscn（流程图）
+node_editor.tscn（内部单招参数）；editor.tscn 是流程图兼容入口
 vfx/            特效代码：combo_player.gd（场景根节点）、combo_stage.gd（连招与默认像素绘制器）、
                 pixel_slash.gd（像素刀光）、combo_style.gd（配色）、gallery.gd；
                 ink_stage.gd + ink_stroke.gd（水墨绘制器）；
                 ribbon_stage.gd + trajectory_ribbon.gd + trajectory_ribbon.gdshader（轨迹刀光）；
                 claw_stage.gd + claw_rake.gd（爪痕）；magic_stage.gd + magic/（脱手魔法：
                 magic_fx.gd、magic_art.gd、fire.gd + fire/、thunder.gd + thunder/、
-                ice.gd + ice/、wind.gd + wind/、sand.gd + sand/、shaders/）；combo_editor.gd（手动精调）
+                ice.gd + ice/、wind.gd + wind/、sand.gd + sand/、shaders/）；studio_editor.gd（单招参数）、flow_editor.gd（流程图）
 combos/<名字>/  <名字>.tscn、combo.json（事件）、style.json（风格）、prompt.md（提示词）
 styles/         风格预设：default、ember、neon、ink
 tools/          new_combo.py、verify_combo.py、frames_to_gif.py、frames_to_review.py、
@@ -32,18 +50,18 @@ media/          下面展示用的 GIF 和逐帧拼图
 SKILL.md        代理说明
 ```
 
-## 手动精调：自己编排、修改连招
+## 多技能与单招编辑
 
-画廊 → **手动精调**（`editor.tscn`）。不经过代理，直接在画面里改：
+作品库 → 多技能 → 添加招式 → 连线 → 节点「编辑单招」。旧作品卡片的「编排」打开同一流程图。
 
-- **选连招**：上方下拉框选一套已有连招，或选「＋ 新建空白连招」。
-- **事件列表**（左）：按时间排好的全部事件，颜色区分斩击、命中、位移、蓄力、一闪、刀痕；下方可以添加、复制、删除。
-- **时间条**（中下）：每类事件一条轨道，**拖动圆点就能改时间**，黄线是播放位置。
-- **属性面板**（右）：上半是整套风格（标题、绘制器、粗细、像素颗粒、字幕），下半是选中事件的所有字段。只显示当前绘制器用得到的字段，比如选了爪痕绘制器才出现爪数、爪距、撕裂感。
-- **实时预览**（中上）：每次修改后自动重播。选中一次斩击，下方会提示“刀光扫到目标的时刻”；按「对齐命中到刀光扫到目标的时刻」，就把后面最近的命中挪过去。
-- **保存**：「保存」覆盖当前连招（第一次会把原文件备份成 `.bak`）；填新名字按「另存为」，会新建一套连招和场景，画廊里直接能打开，代理的检查工具也能照常用。
+- 一条连线顺序播放，一对多并行，多对一等待全部前招；可设置偏移和衔接间隔。
+- 节点内部有参数、画布手柄、阶段时间轴、事件复制与删除、撤销与重做。
+- 单招 Ctrl+S 应用回节点；流程图 Ctrl+S 保存整段作品。首次保存备份原文件。
+- 群体带入真实前置状态；孤立消散显示标注的临时自然材质来源，不写入作品。
+- 单招空格播放／暂停、左右逐帧、Ctrl+Z 撤销、Ctrl+Y 重做、Esc 返回流程图。
+- F11 / Alt+Enter 切换全屏，退出恢复窗口。
 
-按键：空格播放，2 慢放，Ctrl+S 保存，Ctrl+Z 撤销，Ctrl+Y / Ctrl+Shift+Z 重做，Delete 删除事件，Ctrl+D 复制，←/→ 微调时间（Shift ×5），Esc 返回（有未保存的修改要按两次）。
+详见[流程图说明](references/multi_skill_flow.md)。
 
 ## 作为技能使用
 

@@ -37,7 +37,7 @@ THICKNESS = {"thin": 0.6, "medium": 1.0, "normal": 1.0, "bold": 1.4}
 HEX = re.compile(r"^#?[0-9a-fA-F]{6}$")
 ROLES = {"background", "ground", "outline", "flash", "dummy", "dummy_band", "blade", "marker_core", "text", "text_gold"}
 PALETTES = {"normal", "violet", "red", "gold", "green"}
-EVENTS = {"slash", "move", "hit", "charge", "flash_step", "cut", "cast", "camera"}
+from public_schema import EVENTS, validate_event
 # cast (the magic renderer, "renderer": "magic"): what it is and how it travels.
 ELEMENTS = {"fire", "thunder", "ice", "wind", "sand"}
 CAST_CHOICES = {"start": {"hand", "above", "sky", "behind", "self", "below", "target"}, "end": {"target", "ground", "self"},
@@ -120,9 +120,12 @@ def check_combo(combo: dict) -> int:
             for key, default in (("zoom", 1), ("time", .5)):
                 if not number(e.get(key, default)) or e.get(key, default) <= 0:
                     raise SystemExit(f"{where}: camera {key} must be positive")
+    for i, event in enumerate(events):
+        error = validate_event(event)
+        if error: raise SystemExit(f"event {i}: {error}")
     hits = sum(1 for e in events if e["do"] == "hit")
-    if hits == 0:
-        raise SystemExit("combo.json has no \"hit\" event")
+    if hits == 0 and not any(e["do"] in {"quake","swarm","caption","impact","slash","cast","cut","charge"} for e in events):
+        raise SystemExit("combo.json has no visible effect or hit")
     return hits
 
 
@@ -150,7 +153,7 @@ def main(argv=None) -> int:
             raise SystemExit(f"{project} is not a Godot project (no project.godot) and not empty")
         # A new demo project: project settings, the gallery and the vfx scripts.
         project.mkdir(parents=True, exist_ok=True)
-        for name in ("project.godot", "main.tscn"):
+        for name in ("project.godot", "main.tscn", "boot.tscn", "editor.tscn", "quake_editor.tscn", "flow_editor.tscn", "node_editor.tscn"):
             shutil.copy(SKILL / name, project / name)
         print(f"Created a new Godot project in {project}")
 

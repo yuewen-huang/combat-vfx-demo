@@ -11,8 +11,12 @@ config_version=5
 [application]
 
 config/name="Combat VFX Demo"
-run/main_scene="res://main.tscn"
+run/main_scene="res://boot.tscn"
 config/features=PackedStringArray("4.7")
+
+[autoload]
+
+AppWindow="*res://vfx/app_window.gd"
 
 [display]
 

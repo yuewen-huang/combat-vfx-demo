@@ -1,0 +1,17 @@
+{
+  "name": "熔岩裂开",
+  "events": [
+    {
+      "t": 0.2,
+      "do": "quake",
+      "unit": "magma",
+      "mode": "split",
+      "reverse": false,
+      "x": 760,
+      "y": 520,
+      "width": 310,
+      "length": 0,
+      "seed": 17
+    }
+  ]
+}

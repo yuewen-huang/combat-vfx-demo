@@ -31,7 +31,7 @@ extends Node2D
 signal finished
 
 ## World pixels per slash texel.
-static var PIXEL := 3.0
+var PIXEL := 3.0
 ## Largest step between two samples; keeps curves round at low frame rates.
 const MAX_ARC_STEP := deg_to_rad(4.0)
 const MAX_LINE_STEP := 0.04

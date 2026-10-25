@@ -21,26 +21,28 @@ func _check() -> void:
 	fx.ease = 1.0
 	assert(fx.path_at(0, 0.5).is_equal_approx(Vector2(350, 250)), "Ice must stay straight")
 	fx.free()
-	var editor = load("res://editor.tscn").instantiate()
+	var editor = load("res://node_editor.tscn").instantiate()
 	root.add_child(editor)
 	var index: int = editor._paths.find("res://combos/element_master/combo.json")
 	assert(index >= 0)
 	editor._open(index)
 	var before: String = JSON.stringify(editor.data)
-	for i in editor.data.events.size(): editor._select(i)
+	for i in editor.data.events.size(): editor.select_event(i)
 	assert(JSON.stringify(editor.data) == before, "Inspecting events must preserve coordinate lists")
 	var first_cast := -1
 	for i in editor.data.events.size():
 		if editor.data.events[i].do == "cast":
 			first_cast = i
 			break
-	editor._select(first_cast)
-	editor._set_field("burst", true)
+	editor.select_event(first_cast)
+	editor.set_field("burst", true)
 	assert(editor.data.events[first_cast].burst and not editor.data.events[first_cast].has("finisher"))
 	editor._undo_step()
 	assert(JSON.stringify(editor.data) == before)
-	assert(editor._valid_points([[20, 30], "hand"], ["hand"]))
-	assert(not editor._valid_points([[20], "hand"], ["hand"]))
+	var validator = load("res://vfx/combo_editor.gd").new()
+	assert(validator._valid_points([[20, 30], "hand"], ["hand"]))
+	assert(not validator._valid_points([[20], "hand"], ["hand"]))
+	validator.free()
 	# Exercise a real retained body and a nearby burst, rather than just counting hits.
 	var stage: Node = editor.stage
 	stage.set_process(false)

@@ -292,3 +292,8 @@ A `cut` does not count as a hit; pair it with a `hit` at the same `t` if it shou
 
 After `--`: `--verify` (headless; prints `PASS: N hits landed`), `--capture=FILE
 --capture-at=S`, `--frames=DIR --duration=S`. `tools/verify_combo.py` uses them for you.
+
+
+## Ground impacts, natural groups and graph editing
+
+See [public event fields](public_effects.md) and [multi-move graphs](multi_skill_flow.md).

@@ -4,3 +4,17 @@
 verification/
 __pycache__/
 *.pyc
+
+# Editor backups and atomic-save temporary files are local.
+*.bak
+*.tmp
+
+# Local recording-session examples and one-off promo capture scripts.
+/combos/flame_series_*/
+/combos/flame_agent_*/
+/combos/agent_ice_thunder_*/
+/tools/capture_flame_graph.gd*
+/tools/record_agent_flame.gd*
+/tools/record_flame_tutorial.gd*
+/tools/verify_agent_flame.gd*
+/tools/verify_flame.gd*

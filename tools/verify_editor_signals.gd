@@ -28,7 +28,7 @@ func _pick(panel: Control, label: String, index: int) -> bool:
 	return true
 
 func _check() -> void:
-	editor = load("res://editor.tscn").instantiate()
+	editor = load("res://vfx/combo_editor.gd").new()
 	root.add_child(editor)
 	editor._open(editor._paths.find("res://combos/thunder_bolt/combo.json"))
 	editor.data = {"events": [{"t": 0.0, "do": "cast", "element": "fire"}]}

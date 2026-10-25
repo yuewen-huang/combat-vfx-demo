@@ -1,0 +1,68 @@
+{
+  "name": "沙尘推进",
+  "events": [
+    {
+      "t": 0.2,
+      "do": "swarm",
+      "id": "dust",
+      "material": "sand",
+      "form": "stream",
+      "ramp": "dune",
+      "count": 7000,
+      "width": 60,
+      "travel": 2,
+      "path": [
+        [
+          230,
+          480
+        ],
+        [
+          450,
+          470
+        ],
+        [
+          700,
+          480
+        ],
+        [
+          1000,
+          490
+        ]
+      ],
+      "seed": 31
+    },
+    {
+      "t": 2.4,
+      "do": "swarm",
+      "id": "dust",
+      "form": "vortex",
+      "at": [
+        780,
+        520
+      ],
+      "radius": 210,
+      "height": 300,
+      "time": 0.7
+    },
+    {
+      "t": 4.2,
+      "do": "swarm",
+      "id": "dust",
+      "form": "fall",
+      "at": [
+        780,
+        430
+      ],
+      "radius": 350,
+      "height": 130,
+      "time": 0.7
+    },
+    {
+      "t": 5.6,
+      "do": "swarm",
+      "id": "dust",
+      "form": "gone",
+      "time": 0.8
+    }
+  ]
+}

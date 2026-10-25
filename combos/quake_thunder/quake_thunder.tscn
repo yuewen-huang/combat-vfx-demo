@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://vfx/combo_player.gd" id="1"]
+
+[node name="PublicExample" type="Node2D"]
+script = ExtResource("1")
+combo_file = "res://combos/quake_thunder/combo.json"
+style_file = "res://combos/quake_thunder/style.json"

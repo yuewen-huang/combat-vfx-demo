@@ -10,11 +10,15 @@ extends Control
 
 const COMBOS := "res://combos"
 const GALLERY := "res://main.tscn"
-const RENDERERS := ["", "ribbon", "claw", "ink", "magic"]
-const RENDERER_NAMES := ["月牙（默认）", "轨迹刀光", "爪痕", "水墨", "魔法"]
-const DOS := ["slash", "hit", "move", "charge", "flash_step", "cut", "cast", "camera"]
-const DO_NAMES := {"slash": "斩击", "hit": "命中", "move": "位移", "charge": "蓄力", "flash_step": "一闪", "cut": "刀痕", "cast": "施法", "camera": "镜头"}
-const DO_COLOURS := {"slash": Color("6fd6e8"), "hit": Color("ff6a6a"), "move": Color("9aa7b4"), "charge": Color("ffd166"), "flash_step": Color("c99bff"), "cut": Color("ffa14d"), "cast": Color("7dffb0"), "camera": Color("e0b2ff")}
+const RENDERERS := ["", "ribbon", "claw", "ink", "magic", "quake"]
+const RENDERER_NAMES := ["月牙（默认）", "轨迹刀光", "爪痕", "水墨", "魔法", "地震 / 重物砸地"]
+const DOS := ["slash", "hit", "move", "charge", "flash_step", "cut", "cast", "camera", "quake", "swarm", "caption", "impact"]
+const DO_NAMES := {"slash": "斩击", "hit": "命中", "move": "位移", "charge": "蓄力", "flash_step": "一闪", "cut": "刀痕", "cast": "施法", "camera": "镜头", "quake": "地震", "swarm": "群体", "caption": "字幕", "impact": "冲击帧"}
+const DO_COLOURS := {"slash": Color("6fd6e8"), "hit": Color("ff6a6a"), "move": Color("9aa7b4"), "charge": Color("ffd166"), "flash_step": Color("c99bff"), "cut": Color("ffa14d"), "cast": Color("7dffb0"), "camera": Color("e0b2ff"), "quake": Color("dca777"), "swarm": Color("ffc2e0"), "caption": Color("f2f2f2"), "impact": Color("ffffff")}
+const Quake = preload("res://vfx/quake_effect.gd")
+const QUAKE_UNIT_NAMES := ["岩土", "冰晶", "熔岩", "奥术", "雷霆", "暗影", "圣光"]
+const QUAKE_DEBRIS_NAMES := ["跟随材质", "无", "碎石", "冰屑", "熔滴", "火花", "光点"]
+const QUAKE_MODE_NAMES := ["圆心扩散", "单向推进", "中心向两端", "扇形扩散"]
 const MAGIC_STAGE := "res://vfx/magic_stage.gd"
 const ELEMENTS := ["fire", "thunder", "ice", "wind", "sand"]
 const ELEMENT_NAMES := ["火", "雷", "冰", "风", "沙"]
@@ -33,6 +37,24 @@ const CLAW_NAMES := ["弧 / 回环", "横斩", "突进", "交叉斩", "直抓", 
 ## those claw kinds, "cast" every cast (left out, a cast field takes its element's default),
 ## "f:a|b" only casts on those paths, "e:a|b" only casts of those elements.
 const FIELDS := {
+	"quake": [["t", "发生时间", 0, 120, 0.005, 0.0, ""],
+		["x", "位置 X", -2000, 3000, 1, 640.0, ""], ["y", "位置 Y", -1000, 2000, 1, 520.0, ""],
+		["width", "范围宽度 / 直径", 8, 900, 1, 220.0, ""], ["length", "拉伸长度（0=圆）", 0, 1800, 1, 0.0, ""],
+		["cone", "扇形角度", 10, 180, 1, 70.0, "q:cone"],
+		["angle", "方向角度", -180, 180, 1, 0.0, ""], ["perspective", "地面透视压扁", 0.08, 1, 0.01, 0.3, ""],
+		["mode", "传播模式", 0, 0, 0, "radial", ""], ["reverse", "反向", 0, 0, 0, false, "bool"],
+		["rhythm", "传播节奏", 0, 0, 0, "continuous", ""],
+		["travel", "传播时长", 0.02, 10, 0.01, 0.5, "q:continuous"], ["ease", "加速（1=匀速）", 0.2, 4, 0.05, 1.0, "q:continuous"],
+		["body", "显示特效本体", 0, 0, 0, true, "bool"], ["unit", "材质", 0, 0, 0, "earth", ""],
+		["unit_size", "本体大小", 0.1, 4, 0.05, 1.0, ""], ["spacing", "本体间距", 20, 300, 1, 60.0, ""],
+		["unit_time", "本体停留", 0.15, 5, 0.05, 0.8, ""], ["body_growth", "远端放大", 0.2, 4, 0.05, 1.0, ""],
+		["strength", "冲击强度", 0, 3, 0.05, 1.0, ""],
+		["shake", "震屏强度", 0, 30, 0.5, 6.0, ""],
+		["debris", "碎屑", 0, 0, 0, "auto", ""], ["debris_density", "碎屑数量", 0, 4, 0.05, 1.0, ""],
+		["debris_height", "碎屑抛起高度", 0, 800, 1, 110.0, ""],
+		["dust", "显示烟尘", 0, 0, 0, true, "bool"], ["dust_density", "烟尘密度", 0, 4, 0.05, 1.0, ""],
+		["dust_height", "烟尘上升高度", 0, 600, 1, 90.0, ""], ["dust_time", "烟尘消散时间", 0.1, 10, 0.05, 1.1, ""],
+		["seed", "随机种子", 0, 99999, 1, 17, ""]],
 	"slash": [["t", "时间", 0, 20, 0.005, 0.0, ""], ["from", "起始角", -1080, 1080, 1, -70, ""], ["to", "结束角", -1080, 1080, 1, 70, ""],
 		["width", "宽度", 2, 240, 1, 44, ""], ["radius", "半径", 20, 600, 1, 140, "stock"], ["squash", "扁度", 0.05, 2, 0.01, 1.0, ""],
 		["tilt", "倾斜", -180, 180, 1, 0, ""], ["palette", "颜色", 0, 0, 0, "normal", ""],
@@ -65,6 +87,21 @@ const FIELDS := {
 		["hold", "持续", 0, 3, 0.005, 0.22, "cast"], ["linger", "落点悬停", 0, 10, 0.05, 0.0, "cast"], ["fuse", "被引爆后延迟", 0, 2, 0.01, 0.0, "cast"],
 		["burst", "结束时爆开", 0, 0, 0, false, "cast"], ["swell", "末段缩放倍率", 0.01, 5, 0.05, 1.0, "cast"],
 		["jag", "折角（锯齿感）", 0, 0.8, 0.01, 0.28, "e:thunder"]],
+	# "sel" fields are pickers the studio draws itself; "tr:" / "sw:" show for those layouts / forms.
+	"swarm": [["t", "时间", 0, 120, 0.005, 0.0, ""], ["id", "群体名称", 0, 0, 0, "group", "sel"], ["form", "队形", 0, 0, 0, "cloud", "sel"],
+		["at", "中心", 0, 0, 0, "target", "sel"], ["offset_x", "中心偏移 X", -800, 800, 1, 0.0, ""], ["offset_y", "中心偏移 Y", -600, 600, 1, 0.0, ""],
+		["count", "数量", 200, 16000, 100, 6000, ""], ["material", "材质", 0, 0, 0, "leaf", "sel"],
+		["ramp", "配色", 0, 0, 0, "autumn", "sel"], ["size", "单片大小", 0.3, 3, 0.05, 1.0, ""],
+		["radius", "范围半径", 20, 1200, 1, 160.0, "sw:cloud|vortex|sphere|burst|fall"], ["height", "范围高度", 20, 800, 1, 220.0, "sw:cloud|vortex|fall"],
+		["time", "变换用时", 0.05, 5, 0.05, 0.6, ""], ["travel", "流动用时", 0.1, 6, 0.05, 1.2, "sw:stream"],
+		["length", "潮长", 0.05, 1, 0.01, 0.45, "sw:stream"], ["width", "潮宽", 4, 200, 1, 34.0, "sw:stream"], ["path", "路径", 0, 0, 0, [], "sel"],
+		["swirl", "旋转", -8, 8, 0.1, 2.2, ""], ["turbulence", "乱流", 0, 120, 1, 20.0, ""], ["tumble", "翻滚", 0, 1, 0.01, 0.35, ""],
+		["linger", "最后停留", 0, 10, 0.1, 1.2, ""], ["seed", "随机种子", 0, 99999, 1, 17, ""]],
+	"caption": [["t", "时间", 0, 120, 0.005, 0.0, ""], ["text", "文字", 0, 0, 0, "效果演示", "sel"], ["place", "位置", 0, 0, 0, "title", "sel"],
+		["time", "停留", 0.1, 10, 0.05, 1.2, ""], ["fade", "淡入淡出", 0.01, 2, 0.01, 0.18, ""], ["size", "字号倍率", 0.3, 3, 0.05, 1.0, ""],
+		["color", "颜色", 0, 0, 0, "fff2f8", "sel"]],
+	"impact": [["t", "时间", 0, 120, 0.005, 0.0, ""], ["kind", "方式", 0, 0, 0, "invert", "sel"], ["time", "定格", 0.01, 1, 0.005, 0.06, ""],
+		["fade", "淡出", 0, 2, 0.01, 0.12, ""], ["strength", "强度", 0, 1, 0.01, 1.0, ""], ["color", "颜色", 0, 0, 0, "fff0f6", "sel"]],
 }
 
 class Host extends Node2D:
@@ -93,7 +130,8 @@ class Strip extends Control:
 	var dragging := -1
 	func _seconds() -> float:
 		var last := 1.0
-		for e: Dictionary in editor.data.events: last = maxf(last, float(e.get("t", 0.0)) + 0.4)
+		for e: Dictionary in editor.data.events:
+			last = maxf(last, float(e.get("t", 0.0)) + (Quake.propagation_duration(e) + 0.4 if e.do == "quake" else 0.4))
 		return last
 	func _x(t: float) -> float: return 8.0 + t / _seconds() * (size.x - 16.0)
 	func _lane_y(kind: String) -> float: return 10.0 + DOS.find(kind) * (size.y - 20.0) / DOS.size()
@@ -119,6 +157,18 @@ class Strip extends Control:
 				var landings: Array = load(MAGIC_STAGE).contact_times(e)
 				draw_rect(Rect2(at - Vector2(0, 2), Vector2(_x(float(landings[-1])) - at.x, 4)), colour * Color(1, 1, 1, 0.35))
 				for landing: float in landings: draw_line(Vector2(_x(landing), at.y - 6), Vector2(_x(landing), at.y + 6), colour, 1.5)
+			if String(e.do) == "quake":
+				var profile := Quake.normalized(e)
+				draw_rect(Rect2(at - Vector2(0, 2), Vector2(_x(float(e.t) + Quake.propagation_duration(e)) - at.x, 4)), colour * Color(1, 1, 1, 0.18))
+				if profile.rhythm == "staged":
+					var clock := float(e.t)
+					for step: Dictionary in profile.stages:
+						draw_rect(Rect2(Vector2(_x(clock), at.y - 3), Vector2(_x(clock + float(step.time)) - _x(clock), 6)), colour * Color(1, 1, 1, 0.65))
+						clock += float(step.time)
+						draw_line(Vector2(_x(clock), at.y - 7), Vector2(_x(clock), at.y + 7), colour, 1.5)
+						clock += float(step.pause)
+				else:
+					draw_rect(Rect2(at - Vector2(0, 3), Vector2(_x(float(e.t) + Quake.propagation_duration(e)) - at.x, 6)), colour * Color(1, 1, 1, 0.4))
 			draw_circle(at, 6.0 if i == editor.selected else 4.0, colour)
 			if i == editor.selected: draw_arc(at, 9.0, 0, TAU, 20, Color.WHITE, 1.5)
 		if editor.stage != null:
@@ -160,6 +210,11 @@ var _last_time := 0.0
 var _rebuild_in := -1.0
 var _leave_armed := false
 var _filling := false
+## Preview helpers (not saved): replay when settled, zoom on the fighters, checkerboard.
+var _loop := false
+var _loop_rest := -1.0
+var _zoom := 1.0
+var _checker := false
 
 var _picker: OptionButton
 var _list: ItemList
@@ -174,6 +229,7 @@ var _save_as: LineEdit
 var _add_kind: OptionButton
 
 func _ready() -> void:
+	RenderCaps.detect()
 	var background := ColorRect.new()
 	background.color = Color("1d242c")
 	background.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -213,9 +269,37 @@ func _ready() -> void:
 	_strip.dragged.connect(_drag_event)
 	_strip.released.connect(func() -> void: _schedule())
 	add_child(_strip)
+	var tools := HBoxContainer.new()
+	tools.position = Vector2(308, 572)
+	tools.add_theme_constant_override("separation", 10)
+	add_child(tools)
+	var loop := CheckBox.new()
+	loop.text = "循环"
+	loop.focus_mode = Control.FOCUS_NONE
+	loop.tooltip_text = "播完自动重播，边调边看"
+	loop.toggled.connect(func(on: bool) -> void: _loop = on)
+	tools.add_child(loop)
+	var zoom_label := Label.new()
+	zoom_label.text = "预览放大"
+	tools.add_child(zoom_label)
+	var zooms := OptionButton.new()
+	for z in ["1×", "2×", "3×"]: zooms.add_item(z)
+	zooms.focus_mode = Control.FOCUS_NONE
+	zooms.item_selected.connect(func(i: int) -> void:
+		_zoom = [1.0, 2.0, 3.0][i]
+		_apply_preview())
+	tools.add_child(zooms)
+	var checker := CheckBox.new()
+	checker.text = "棋盘格背景"
+	checker.focus_mode = Control.FOCUS_NONE
+	checker.tooltip_text = "看清透明气浪、热扭曲的折射（只影响预览）"
+	checker.toggled.connect(func(on: bool) -> void:
+		_checker = on
+		_rebuild(true))
+	tools.add_child(checker)
 	_check = Label.new()
-	_check.position = Vector2(308, 574)
-	_check.size = Vector2(640, 140)
+	_check.position = Vector2(308, 604)
+	_check.size = Vector2(640, 110)
 	_check.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_check.add_theme_font_size_override("font_size", 14)
 	add_child(_check)
@@ -272,6 +356,12 @@ func _build_top_bar() -> void:
 	_status = Label.new()
 	_status.add_theme_color_override("font_color", Color("ffe36b"))
 	bar.add_child(_status)
+	if RenderCaps.fallback:
+		var note := Label.new()
+		note.text = "兜底模式：%s（未检测到显卡，特效已简化）" % RenderCaps.reason
+		note.position = Vector2(8, 34)
+		note.add_theme_font_size_override("font_size", 12)
+		add_child(note)
 
 # --- Combos on disk -------------------------------------------------------------------------
 
@@ -321,6 +411,7 @@ func _after_load(message: String) -> void:
 	dirty = false
 	_leave_armed = false
 	selected = -1
+	_add_kind.select(DOS.find("quake") if _renderer() == "quake" else 0)
 	_status.text = message
 	_refresh_all()
 	_rebuild(true)
@@ -401,6 +492,7 @@ func _add_event() -> void:
 	if kind == "slash" and _renderer() == "claw": e["claw"] = "arc"
 	if kind == "slash" and _renderer() in ["", "ink"]: e["radius"] = 160
 	if kind == "cast": e["element"] = "fire"
+	if kind == "quake": e.merge(Quake.DEFAULTS, false)
 	if kind == "cast" and _renderer() != "magic": _status.text = "施法只在「魔法」绘制器里显示：在左边风格里把绘制器换成「魔法」"
 	(data.events as Array).append(e)
 	selected = data.events.size() - 1
@@ -446,6 +538,13 @@ func _set_field(key: String, value: Variant) -> void:
 		_: e[key] = value
 	_changed()
 
+func _open_quake_editor() -> void:
+	if dirty or combo_path.is_empty():
+		_status.text = "先保存这个连招，再到地震特效编辑器里精调"
+		return
+	get_tree().root.set_meta("quake_editor_open", combo_path)
+	get_tree().change_scene_to_file("res://quake_editor.tscn")
+
 func _toggle_optional(key: String, on: bool, default: Variant) -> void:
 	if _filling or selected < 0: return
 	_remember("%d:%s?" % [selected, key])
@@ -461,7 +560,9 @@ func _set_style(key: String, value: Variant) -> void:
 	if key == "renderer" and String(value).is_empty(): style.erase("renderer")
 	else: style[key] = value
 	_changed()
-	if key == "renderer": _refresh_inspector()
+	if key == "renderer":
+		if String(value) == "quake": _add_kind.select(DOS.find("quake"))
+		_refresh_inspector()
 
 func _set_captions(text: String) -> void:
 	if _filling: return
@@ -542,6 +643,7 @@ func _order() -> Array:
 
 func _summary(e: Dictionary) -> String:
 	match String(e.do):
+		"quake": return "%s · %s  %s  %.2fs" % [QUAKE_UNIT_NAMES[maxi(0, Quake.Profile.UNITS.find(e.get("unit", "earth")))], "分段" if e.get("rhythm", "continuous") == "staged" else "连续", QUAKE_MODE_NAMES[maxi(0, Quake.Profile.MODES.find(e.get("mode", "radial")))], Quake.propagation_duration(e)]
 		"slash":
 			if _renderer() == "claw":
 				var claws := "宽%.0f  %d爪" % [float(e.get("width", 44)), int(e.get("fingers", 3))]
@@ -634,6 +736,11 @@ func _refresh_style() -> void:
 		var current := tiers.find(String(style.get("magic_quality", "explosive")))
 		if current < 0: current = 3
 		_row(_style_box, "魔法画质", _options(["复古", "均衡", "极致", "炸裂"], current, func(i: int) -> void: _set_style("magic_quality", tiers[i])))
+	if _renderer() == "quake":
+		# Ground impacts have their own dimensions and colours; these legacy style fields
+		# do not affect them. Leave room for the event's actual controls.
+		_filling = false
+		return
 	_row(_style_box, "粗细", _spin(0.2, 3.0, 0.05, float(style.get("thickness", 1.0)), func(v: float) -> void: _set_style("thickness", v)))
 	_row(_style_box, "像素颗粒", _spin(1, 8, 1, float(style.get("pixel", 3)), func(v: float) -> void: _set_style("pixel", int(v))))
 	var captions := TextEdit.new()
@@ -662,6 +769,14 @@ func _refresh_inspector() -> void:
 	for field: Array in FIELDS.get(String(e.do), []):
 		var key: String = field[0]
 		var shown: String = field[6]
+		if String(e.do) == "quake":
+			if shown == "q:cone" and e.get("mode", "radial") != "cone": continue
+			if shown == "q:continuous" and e.get("rhythm", "continuous") == "staged": continue
+			if key in ["x", "rhythm", "body", "debris", "dust"]:
+				var section := Label.new()
+				section.text = {"x": "范围与传播", "rhythm": "传播节奏", "body": "本体", "debris": "碎屑", "dust": "烟尘"}[key]
+				section.add_theme_color_override("font_color", Color("dca777"))
+				_inspector.add_child(section)
 		if shown == "stock" and not renderer in ["", "ink"]: continue
 		if shown == "timed" and not renderer in ["ribbon", "claw"]: continue
 		if shown == "claw" and renderer != "claw": continue
@@ -669,6 +784,26 @@ func _refresh_inspector() -> void:
 		if shown.begins_with("e:") and not String(e.get("element", "fire")) in shown.trim_prefix("e:").split("|"): continue
 		if shown.begins_with("f:") and not String((load(MAGIC_STAGE).cast_spec(e) as Dictionary).path) in shown.trim_prefix("f:").split("|"): continue
 		match key:
+			"unit": _row(_inspector, field[1], _options(QUAKE_UNIT_NAMES, Quake.Profile.UNITS.find(e.get("unit", "earth")), func(i: int) -> void:
+				_set_field("unit", Quake.Profile.UNITS[i])
+				_refresh_inspector()))
+			"debris": _row(_inspector, field[1], _options(QUAKE_DEBRIS_NAMES, Quake.Profile.DEBRIS.find(e.get("debris", "auto")), func(i: int) -> void: _set_field("debris", Quake.Profile.DEBRIS[i])))
+			"rhythm":
+				_row(_inspector, field[1], _options(["持续推进", "分段：震 → 停 → 震"], 1 if e.get("rhythm", "continuous") == "staged" else 0, func(i: int) -> void:
+					_set_field("rhythm", "staged" if i == 1 else "continuous")
+					_refresh_inspector()))
+				if e.get("rhythm", "continuous") == "staged": _quake_stages(e)
+			"mode": _row(_inspector, field[1], _options(QUAKE_MODE_NAMES, maxi(0, Quake.Profile.MODES.find(e.get("mode", "radial"))), func(i: int) -> void:
+				_set_field("mode", Quake.Profile.MODES[i])
+				_refresh_inspector()))
+			"at":
+				var places := ["attacker", "target"]
+				_row(_inspector, field[1], _options(["角色（攻击者）", "目标"], maxi(0, places.find(String(e.get("at", "attacker")))), func(i: int) -> void: _set_field("at", places[i])))
+			"body_color", "dust_color", "tint":
+				var picker := ColorPickerButton.new()
+				picker.color = Color.from_string(String(e.get(key, field[5])), Color.WHITE)
+				picker.color_changed.connect(func(colour: Color) -> void: _set_field(key, colour.to_html()))
+				_row(_inspector, field[1], picker)
 			"palette": _row(_inspector, field[1], _options(PALETTES, PALETTES.find(String(e.get("palette", "normal"))), func(i: int) -> void: _set_field("palette", PALETTES[i])))
 			"claw": _row(_inspector, field[1], _options(CLAW_NAMES, CLAW_KINDS.find(String(e.get("claw", "arc"))), func(i: int) -> void:
 				_set_field("claw", CLAW_KINDS[i])
@@ -709,9 +844,9 @@ func _refresh_inspector() -> void:
 							_set_field(key, points)
 						else: _status.text = "坐标格式错误：使用 [x,y] 或坐标/名称列表")
 					_row(_inspector, "坐标列表", input)
-			"finisher", "burst":
+			"finisher", "burst", "body", "dust", "reverse", "red", "auto_tilt":
 				var check := CheckBox.new()
-				check.button_pressed = bool(e.get(key, false))
+				check.button_pressed = bool(e.get(key, field[5]))
 				check.toggled.connect(func(on: bool) -> void: _set_field(key, on))
 				_row(_inspector, field[1], check)
 			"at_x", "at_y":
@@ -734,14 +869,54 @@ func _refresh_inspector() -> void:
 					_row(_inspector, field[1], line)
 				else:
 					var value := _cast_value(e, key, float(field[5])) if String(e.do) == "cast" else float(e.get(key, field[5]))
-					var integer := float(field[4]) >= 1.0 and key in ["fingers", "count"]
+					var integer := float(field[4]) >= 1.0 and key in ["fingers", "count", "seed", "rings", "level"]
 					_row(_inspector, field[1], _spin(field[2], field[3], field[4], value, func(v: float) -> void: _set_field(key, int(v) if integer else v)))
 	if String(e.do) == "slash":
 		var align := _button("对齐命中到刀光扫到目标的时刻", _align_hit)
 		_inspector.add_child(align)
 	if String(e.do) == "cast":
 		_inspector.add_child(_button("对齐命中到每个落点（不够会自动补）", _align_hit))
+	if String(e.do) == "quake":
+		_inspector.add_child(_button("在「地震特效编辑器」里精调（裂缝、冲击波、颜色…）", _open_quake_editor))
 	_filling = false
+
+func _quake_stages(event: Dictionary) -> void:
+	var steps: Array = Quake.normalized(event).stages
+	var hint := Label.new()
+	hint.text = "距离按权重分配；停顿时烟尘继续运动"
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_inspector.add_child(hint)
+	for i in steps.size():
+		var header := Label.new()
+		header.text = "第 %d 段" % (i + 1)
+		_inspector.add_child(header)
+		for field in [["distance", "推进距离权重", 0.01, 10.0], ["time", "推进用时", 0.02, 3.0], ["pause", "随后停顿", 0.0, 3.0], ["strength", "本段强度", 0.0, 3.0]]:
+			if field[0] == "pause" and i == steps.size() - 1: continue
+			var index := i
+			var key: String = field[0]
+			var spin := _spin(field[2], field[3], 0.01, float(steps[i][key]), func(value: float) -> void:
+				var changed: Array = Quake.normalized(data.events[selected]).stages
+				changed[index][key] = value
+				_set_field("stages", changed))
+			spin.allow_greater = false
+			spin.allow_lesser = false
+			_row(_inspector, field[1], spin)
+	var actions := HBoxContainer.new()
+	var add := _button("＋ 一段", func() -> void:
+		var changed: Array = Quake.normalized(data.events[selected]).stages
+		changed.append({"distance": 1.0, "time": 0.15, "pause": 0.0, "strength": 1.0})
+		_set_field("stages", changed)
+		_refresh_inspector())
+	add.disabled = steps.size() >= 8
+	actions.add_child(add)
+	var remove := _button("－ 末段", func() -> void:
+		var changed: Array = Quake.normalized(data.events[selected]).stages
+		changed.pop_back()
+		_set_field("stages", changed)
+		_refresh_inspector())
+	remove.disabled = steps.size() <= 1
+	actions.add_child(remove)
+	_inspector.add_child(actions)
 
 func _valid_points(value: Variant, names: Array) -> bool:
 	if not value is Array or (value as Array).is_empty(): return false
@@ -760,7 +935,7 @@ func _refresh_check() -> void:
 	var last := 0.0
 	for e: Dictionary in events: last = maxf(last, float(e.get("t", 0.0)))
 	var lines := PackedStringArray(["%d 个事件 · %d 次命中 · 最后事件 %.2fs%s" % [events.size(), hits, last, "  · 未保存" if dirty else ""]])
-	if hits == 0: lines.append("⚠ 没有命中事件：自检和连击数需要至少一个「命中」")
+	if hits == 0 and not events.any(func(e: Dictionary) -> bool: return e.do == "quake"): lines.append("⚠ 没有命中事件：自检和连击数需要至少一个「命中」")
 	# Slashes whose blade crosses the target with no hit near that moment.
 	for e: Dictionary in events:
 		if String(e.do) != "slash": continue
@@ -799,6 +974,27 @@ func _rebuild(play := true) -> void:
 	if "captions" in stage: stage.captions = data.get("captions", [])
 	stage.reset()
 	if play: stage.play()
+	if _checker:
+		var board := Checker.new()
+		stage.add_child(board)
+		stage.move_child(board, 0)
+	_apply_preview()
+
+## Preview zoom: closer on the fighters (not saved; camera events still take over).
+func _apply_preview() -> void:
+	if stage == null or not "_camera" in stage: return
+	var camera: Camera2D = stage._camera
+	camera.zoom = Vector2.ONE * _zoom
+	var focus: Vector2 = stage.attacker.position.lerp(stage.target.position + Vector2(0, -48), 0.35)
+	var half := Vector2(640, 360) / _zoom
+	camera.position = Vector2(clampf(focus.x, half.x, 1280.0 - half.x), clampf(focus.y, half.y, 720.0 - half.y)) if _zoom > 1.0 else Vector2(640, 360)
+
+class Checker extends Node2D:
+	## A grey checkerboard behind the fighters, so refraction is easy to judge.
+	func _draw() -> void:
+		for y in range(0, 720, 32):
+			for x in range(0, 1280, 32):
+				if (x / 32 + y / 32) % 2 == 0: draw_rect(Rect2(x, y, 32, 32), Color(1, 1, 1, 0.13))
 
 func _toggle_slow() -> void:
 	if stage == null: return
@@ -810,6 +1006,14 @@ func _process(delta: float) -> void:
 		_rebuild_in -= delta
 		if _rebuild_in < 0.0:
 			var slow: bool = stage != null and stage.speed < 1.0
+			_rebuild(true)
+			if slow: stage.speed = ComboStage.SLOW_SPEED
+	if _loop and stage != null and not stage.playing and stage.is_settled():
+		if _loop_rest < 0.0: _loop_rest = 0.4
+		_loop_rest -= delta
+		if _loop_rest <= 0.0:
+			_loop_rest = -1.0
+			var slow: bool = stage.speed < 1.0
 			_rebuild(true)
 			if slow: stage.speed = ComboStage.SLOW_SPEED
 	_strip.queue_redraw()
@@ -832,7 +1036,7 @@ func _write(path: String, value: Dictionary) -> bool:
 func _validate() -> String:
 	var events: Array = data.events
 	if events.is_empty(): return "没有事件"
-	if not events.any(func(e: Dictionary) -> bool: return String(e.do) == "hit"): return "至少需要一个「命中」"
+	if not events.any(func(e: Dictionary) -> bool: return String(e.do) in ["hit", "quake"]): return "至少需要一个「命中」或「地震」"
 	return ""
 
 func _save() -> void:

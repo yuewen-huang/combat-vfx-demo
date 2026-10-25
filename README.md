@@ -6,14 +6,30 @@ Describe a sword combo in plain words — moves, rhythm, colours, width — and 
 scene with fighting-game hit feel: pixel crescents or sampled blade ribbons, star hit sparks, hit-stop,
 knockback, launch and slam, screen shake, a hit counter and a finisher. Packaged as an AI
 agent skill; the repository itself is a Godot project you can open and play. No art,
-plugins or autoloads — every effect is drawn in code.
+external assets or plugins — every effect is drawn in code.
+
+## Update: ground impacts, natural groups and multi-move graphs
+
+Library → **多技能** → add and connect moves → edit a move → apply and save the full show.
+Existing cards offer graph editing while clicking the card still plays it. Existing works retain their authored events and colours.
+F11 / Alt+Enter toggles fullscreen and restores the previous window.
+
+Ground impacts have four propagation modes, seven base materials, staged rhythm, GPU animation and software-adapter quality fallback.
+Natural groups offer leaves, feathers and sand with seven formations, editable paths and continuous transitions.
+Graphs support sequences, parallel branches and joins, with a timeline, undo/redo and contextual move previews.
+Ten colour presets and custom five-stop ramps are independent from material geometry and motion.
+
+See [release contents and checks](references/public_release.md), [events](references/public_effects.md) and [graphs](references/multi_skill_flow.md).
+New examples: `quake_*`, `public_autumn`, `public_feathers`, `public_sand`, `public_multiskill`.
+The 3 ms ground benchmark is a target for a specific device and case, not a universal or combined-effects guarantee.
+Source is available under the noncommercial [LICENSE](LICENSE).
 
 ## Open it in Godot
 
 Import `project.godot` (Godot 4.3+) and press F5: the gallery lists every combo. Each combo
 is one scene, `combos/<name>/<name>.tscn`; open one to see its stage in the editor, F6 to
 play it on loop. Keys: 1/Space replay, 2 slow motion, R reset, Esc back to the gallery.
-The gallery's first entry, **手动精调** (`editor.tscn`), builds or edits combos by hand with a live preview.
+Use **多技能** in the library, connect move nodes, then open a node to edit its parameters. `editor.tscn` is a compatible entrance to the graph.
 
 ```
 project.godot   main.tscn (gallery)
@@ -23,7 +39,7 @@ vfx/            the effect code: combo_player.gd (scene root), combo_stage.gd (t
                 ribbon_stage.gd + trajectory_ribbon.gd + trajectory_ribbon.gdshader (blade ribbons);
                 claw_stage.gd + claw_rake.gd (claw marks); magic_stage.gd + magic/ (off-hand
                 magic: magic_fx.gd, magic_art.gd, fire.gd + fire/, thunder.gd + thunder/,
-                ice.gd + ice/, wind.gd + wind/, sand.gd + sand/, shaders/); combo_editor.gd (the hand-tuning editor)
+                ice.gd + ice/, wind.gd + wind/, sand.gd + sand/, shaders/); studio_editor.gd (move parameters), flow_editor.gd (the graph)
 combos/<name>/  <name>.tscn, combo.json (the events), style.json (the look), prompt.md
 styles/         style presets: default, ember, neon, ink
 tools/          new_combo.py, verify_combo.py, frames_to_gif.py, frames_to_review.py,

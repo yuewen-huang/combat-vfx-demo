@@ -1,0 +1,17 @@
+{
+  "name": "暗影收拢",
+  "events": [
+    {
+      "t": 0.2,
+      "do": "quake",
+      "unit": "shadow",
+      "mode": "radial",
+      "reverse": true,
+      "x": 760,
+      "y": 520,
+      "width": 310,
+      "length": 0,
+      "seed": 17
+    }
+  ]
+}

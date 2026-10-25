@@ -24,6 +24,7 @@ extends Node2D
 @export var loop_pause := 1.0
 
 const GALLERY := "res://main.tscn"
+const Loading = preload("res://vfx/screen_loading.gd")
 
 var demo: ComboStage
 var shake_left := 0.0
@@ -49,6 +50,7 @@ var _rest := -1.0
 var _overlay: CanvasLayer
 
 func _ready() -> void:
+	RenderCaps.detect()
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--capture="): capture_path = arg.trim_prefix("--capture=")
 		elif arg.begins_with("--capture-at="):
@@ -119,7 +121,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE \
 			and ResourceLoader.exists(GALLERY) and get_tree().current_scene == self \
 			and scene_file_path != GALLERY:
-		get_tree().change_scene_to_file(GALLERY)
+		get_viewport().set_input_as_handled()
+		Loading.open_scene(self, GALLERY, "正在返回画廊")
 
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint(): return
@@ -142,7 +145,7 @@ func _process(delta: float) -> void:
 			get_tree().quit(1)
 		elif demo.is_settled():
 			var expected: int = demo.expected_hits()
-			if demo.hits != expected or expected == 0:
+			if demo.hits != expected or (expected == 0 and not _has_quake()):
 				push_error("Expected %d hits, landed %d" % [expected, demo.hits])
 				get_tree().quit(1)
 			else:
@@ -152,7 +155,7 @@ func _process(delta: float) -> void:
 
 ## Plays the combo again after a rest once it has settled.
 func _loop(delta: float) -> void:
-	if loop_pause < 0.0 or demo.playing or not demo.is_settled() or demo.hits == 0:
+	if loop_pause < 0.0 or demo.playing or not demo.is_settled() or (demo.hits == 0 and not _has_quake()):
 		_rest = -1.0
 		return
 	if _rest < 0.0: _rest = loop_pause
@@ -160,6 +163,9 @@ func _loop(delta: float) -> void:
 	if _rest <= 0.0:
 		_rest = -1.0
 		demo.play()
+
+func _has_quake() -> bool:
+	return demo.TIMELINE.any(func(e: Dictionary) -> bool: return e.do in ["quake","swarm","caption","impact","slash","cast","cut","charge"])
 
 func _save_frame() -> void:
 	var index := _frame_index

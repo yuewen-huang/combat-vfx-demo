@@ -6,12 +6,13 @@ extends Control
 ## moves that combo's folder to the system recycle bin, after asking.
 
 const COMBOS := "res://combos"
+const Loading = preload("res://vfx/screen_loading.gd")
 const COLUMNS := 3
 const ROWS := 3
 const CARD := Vector2(384, 136)
 ## Renderer (style.json "renderer") → name and accent.
 const RENDERERS := {"": ["月牙", Color("8fb7ff")], "ribbon": ["轨迹刀光", Color("6fd6e8")], "claw": ["爪痕", Color("ff8a6a")],
-	"ink": ["水墨", Color("c9c2b0")], "magic": ["魔法", Color("e8c060")]}
+	"ink": ["水墨", Color("c9c2b0")], "magic": ["魔法", Color("e8c060")], "quake": ["地震", Color("dca777")]}
 
 ## The page and tab to come back to.
 static var _page := 0
@@ -27,6 +28,8 @@ var _confirm: ConfirmationDialog
 var _doomed := ""
 
 func _ready() -> void:
+	_tab = "all"
+	RenderCaps.detect()
 	var background := ColorRect.new()
 	background.color = Color("1a1f26")
 	background.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -34,22 +37,29 @@ func _ready() -> void:
 	var column := VBoxContainer.new()
 	column.position = Vector2(48, 28)
 	column.size = Vector2(1184, 664)
-	column.add_theme_constant_override("separation", 14)
+	column.add_theme_constant_override("separation", 9 if RenderCaps.fallback else 14)
 	add_child(column)
 	var header := HBoxContainer.new()
 	column.add_child(header)
 	var heading := Label.new()
-	heading.text = "Combat VFX 连招一览"
+	heading.text = "Combat VFX · 演出作品库"
 	heading.add_theme_font_size_override("font_size", 30)
 	heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(heading)
-	# Hand tuning: build a combo or fine-tune an existing one with a live preview.
-	var editor := _button("手动精调 — 新建 / 修改连招", 22)
-	editor.pressed.connect(get_tree().change_scene_to_file.bind("res://editor.tscn"))
-	header.add_child(editor)
+	header.add_child(_button("多技能",18))
+	(header.get_child(header.get_child_count()-1) as Button).pressed.connect(func() -> void: Loading.open_scene(self,"res://flow_editor.tscn","正在打开多技能流程图"))
+	var fullscreen := _button("全屏 F11",18)
+	fullscreen.pressed.connect(func() -> void: get_node("/root/AppWindow").toggle_fullscreen())
+	header.add_child(fullscreen)
+	if RenderCaps.fallback:
+		var note := Label.new()
+		note.text = "兜底模式：%s（未检测到显卡，特效已简化）" % RenderCaps.reason
+		note.add_theme_font_size_override("font_size", 14)
+		column.add_child(note)
 	_tabs = HBoxContainer.new()
 	_tabs.add_theme_constant_override("separation", 8)
 	column.add_child(_tabs)
+	_tabs.hide()
 	_grid = GridContainer.new()
 	_grid.columns = COLUMNS
 	_grid.add_theme_constant_override("h_separation", 16)
@@ -169,7 +179,7 @@ func _card(c: Dictionary) -> Button:
 		style.border_width_left = 6
 		style.set_corner_radius_all(10)
 		card.add_theme_stylebox_override(state, style)
-	card.pressed.connect(get_tree().change_scene_to_file.bind(c.path))
+	card.pressed.connect(func() -> void: Loading.open_scene(self, c.path, "正在打开「%s」" % c.name))
 	card.gui_input.connect(func(event: InputEvent) -> void:
 		if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_DELETE:
 			_ask(c)
@@ -188,6 +198,13 @@ func _card(c: Dictionary) -> Button:
 	var tag := _text(String(info[0]), 16, accent)
 	tag.position = Vector2(22, CARD.y - 38)
 	card.add_child(tag)
+	var edit := Button.new()
+	edit.text = "编排"
+	edit.position = Vector2(CARD.x - 158, CARD.y - 42)
+	edit.size = Vector2(68, 30)
+	edit.pressed.connect(func() -> void:
+		Loading.open_scene(self, "res://flow_editor.tscn", "正在编排「%s」" % c.name, {"flow_open": String(c.path).get_base_dir().path_join("combo.json")}))
+	card.add_child(edit)
 	var delete := Button.new()
 	delete.text = "删除"
 	delete.flat = true

@@ -1,6 +1,6 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://vfx/combo_editor.gd" id="1"]
+[ext_resource type="Script" path="res://vfx/flow_editor.gd" id="1"]
 
 [node name="ComboEditor" type="Control"]
 layout_mode = 3

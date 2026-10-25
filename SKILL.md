@@ -44,7 +44,7 @@ Don't ask about anything the user left out — use the default and mention it in
    ```bash
    python <skill>/tools/new_combo.py <name> --project <godot_project> --combo combo.json --style style.json --prompt "<the user's request>" [--force]
    ```
-   It validates the events (known `do`, numeric `t`, palette names, at least one `hit`),
+   It validates the events (known `do`, numeric `t`, palette names, a visible effect or a `hit`),
    copies the `vfx/` scripts into the project if they are missing, and writes
    `combos/<name>/` with the scene, both JSON files and `prompt.md`. It refuses to replace an
    existing combo without `--force`.
@@ -67,3 +67,8 @@ Don't ask about anything the user left out — use the default and mention it in
    it: open the project in Godot, open `combos/<name>/<name>.tscn` and press F6 (it loops;
    1/Space replay, 2 slow motion, R reset, Esc to the gallery). The scene also shows the
    stage in the editor without running.
+
+
+## Public editor and environmental effects
+
+For ground impacts or natural groups, read `references/public_effects.md`. Use only the documented event and material registry. Zero-hit visual scenes are supported. For sequential or parallel shows, use `references/multi_skill_flow.md`. The library routes editing through the move graph. Validate with `tools/verify_public.gd` and render with `tools/capture_public.gd`.

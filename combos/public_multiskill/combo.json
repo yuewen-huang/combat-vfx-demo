@@ -1,0 +1,281 @@
+{
+  "name": "自然群体 · 并行编排",
+  "events": [
+    {
+      "t": 0.1,
+      "do": "quake",
+      "unit": "earth",
+      "mode": "radial",
+      "x": 720,
+      "y": 520,
+      "width": 280,
+      "shake": 3,
+      "_flow_node": "ground",
+      "_flow_renderer": "quake",
+      "_flow_style": {
+        "renderer": "quake",
+        "title": "岩土起手",
+        "language": "zh"
+      },
+      "_flow_order": 0
+    },
+    {
+      "t": 0.8,
+      "do": "swarm",
+      "id": "leaves",
+      "material": "leaf",
+      "form": "vortex",
+      "count": 800,
+      "ramp": "autumn",
+      "radius": 160,
+      "height": 270,
+      "linger": 2,
+      "seed": 17,
+      "_flow_node": "leaves",
+      "_flow_renderer": "",
+      "_flow_style": {
+        "title": "秋叶旋涡",
+        "language": "zh"
+      },
+      "_flow_order": 1
+    },
+    {
+      "t": 0.8,
+      "do": "swarm",
+      "id": "feathers",
+      "material": "feather",
+      "form": "fall",
+      "at": [
+        650,
+        280
+      ],
+      "count": 450,
+      "ramp": "ivory",
+      "radius": 470,
+      "height": 300,
+      "linger": 2,
+      "seed": 23,
+      "_flow_node": "feathers",
+      "_flow_renderer": "",
+      "_flow_style": {
+        "title": "轻羽并行",
+        "language": "zh"
+      },
+      "_flow_order": 3
+    },
+    {
+      "t": 2.8,
+      "do": "swarm",
+      "id": "leaves",
+      "form": "gone",
+      "time": 0.6,
+      "_flow_node": "leaves",
+      "_flow_renderer": "",
+      "_flow_style": {
+        "title": "秋叶旋涡",
+        "language": "zh"
+      },
+      "_flow_order": 2
+    },
+    {
+      "t": 2.8,
+      "do": "swarm",
+      "id": "feathers",
+      "form": "gone",
+      "time": 0.6,
+      "_flow_node": "feathers",
+      "_flow_renderer": "",
+      "_flow_style": {
+        "title": "轻羽并行",
+        "language": "zh"
+      },
+      "_flow_order": 4
+    },
+    {
+      "t": 3.4,
+      "do": "impact",
+      "kind": "flash",
+      "strength": 0.3,
+      "time": 0.03,
+      "fade": 0.18,
+      "_flow_node": "finish",
+      "_flow_renderer": "",
+      "_flow_style": {
+        "title": "汇合收尾",
+        "language": "zh"
+      },
+      "_flow_order": 5
+    }
+  ],
+  "_flow": {
+    "version": 1,
+    "name": "自然群体 · 并行编排",
+    "nodes": [
+      {
+        "id": "ground",
+        "title": "岩土起手",
+        "category": "quake",
+        "data": {
+          "events": [
+            {
+              "t": 0.1,
+              "do": "quake",
+              "unit": "earth",
+              "mode": "radial",
+              "x": 720,
+              "y": 520,
+              "width": 280,
+              "shake": 3
+            }
+          ],
+          "name": "岩土起手"
+        },
+        "style": {
+          "renderer": "quake",
+          "title": "岩土起手",
+          "language": "zh"
+        },
+        "position": [
+          30,
+          90
+        ],
+        "span": 0.8,
+        "delay": 0,
+        "join": "after"
+      },
+      {
+        "id": "leaves",
+        "title": "秋叶旋涡",
+        "category": "swarm",
+        "data": {
+          "events": [
+            {
+              "t": 0,
+              "do": "swarm",
+              "id": "leaves",
+              "material": "leaf",
+              "form": "vortex",
+              "count": 800,
+              "ramp": "autumn",
+              "radius": 160,
+              "height": 270,
+              "linger": 2,
+              "seed": 17
+            },
+            {
+              "t": 2,
+              "do": "swarm",
+              "id": "leaves",
+              "form": "gone",
+              "time": 0.6
+            }
+          ],
+          "name": "秋叶旋涡"
+        },
+        "style": {
+          "title": "秋叶旋涡",
+          "language": "zh"
+        },
+        "position": [
+          350,
+          20
+        ],
+        "span": 2.6,
+        "delay": 0,
+        "join": "after"
+      },
+      {
+        "id": "feathers",
+        "title": "轻羽并行",
+        "category": "swarm",
+        "data": {
+          "events": [
+            {
+              "t": 0,
+              "do": "swarm",
+              "id": "feathers",
+              "material": "feather",
+              "form": "fall",
+              "at": [
+                650,
+                280
+              ],
+              "count": 450,
+              "ramp": "ivory",
+              "radius": 470,
+              "height": 300,
+              "linger": 2,
+              "seed": 23
+            },
+            {
+              "t": 2,
+              "do": "swarm",
+              "id": "feathers",
+              "form": "gone",
+              "time": 0.6
+            }
+          ],
+          "name": "轻羽并行"
+        },
+        "style": {
+          "title": "轻羽并行",
+          "language": "zh"
+        },
+        "position": [
+          350,
+          250
+        ],
+        "span": 2.6,
+        "delay": 0,
+        "join": "after"
+      },
+      {
+        "id": "finish",
+        "title": "汇合收尾",
+        "category": "show",
+        "data": {
+          "events": [
+            {
+              "t": 0,
+              "do": "impact",
+              "kind": "flash",
+              "strength": 0.3,
+              "time": 0.03,
+              "fade": 0.18
+            }
+          ],
+          "name": "汇合收尾"
+        },
+        "style": {
+          "title": "汇合收尾",
+          "language": "zh"
+        },
+        "position": [
+          680,
+          110
+        ],
+        "span": 0.4,
+        "delay": 0,
+        "join": "after"
+      }
+    ],
+    "edges": [
+      {
+        "from": "ground",
+        "to": "leaves"
+      },
+      {
+        "from": "ground",
+        "to": "feathers"
+      },
+      {
+        "from": "leaves",
+        "to": "finish"
+      },
+      {
+        "from": "feathers",
+        "to": "finish"
+      }
+    ]
+  }
+}

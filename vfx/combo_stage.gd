@@ -61,9 +61,20 @@ static func parse_events(raw_events: Array) -> Array:
 	events.sort_custom(func(x: Dictionary, y: Dictionary) -> bool: return x.t < y.t)
 	return events
 
-## Combo seconds of the last event.
+## Combo end including long ground-propagation tails (used by the verification deadline).
 func clock_end() -> float:
-	return 0.0 if TIMELINE.is_empty() else float(TIMELINE[-1].t)
+	var last := 0.0 if TIMELINE.is_empty() else float(TIMELINE[-1].t)
+	for event: Dictionary in TIMELINE:
+		if event.do == "quake":
+			var profile := preload("res://vfx/quake/propagation.gd")
+			last = maxf(last, float(event.t) + profile.lifetime(profile.normalized(event)))
+		elif event.do == "swarm":
+			last = maxf(last, float(event.t) + preload("res://vfx/swarm_effect.gd").tail(event))
+		elif event.do == "caption":
+			last = maxf(last, float(event.t) + preload("res://vfx/caption_effect.gd").lifetime(event))
+		elif event.do == "impact":
+			last = maxf(last, float(event.t) + preload("res://vfx/impact_effect.gd").lifetime(event))
+	return last
 
 func expected_hits() -> int:
 	return TIMELINE.filter(func(e: Dictionary) -> bool: return e.do == "hit").size()
@@ -90,6 +101,21 @@ var _camera: Camera2D
 var _view := {}
 ## Text that stays put on screen whatever the camera does (help, captions).
 var overlay: CanvasLayer
+## Depth layers. 中景 is the stage itself (`fx`, the attacker and the target). 近景 (`near_fx`)
+## draws over it and follows the camera with extra parallax, so it lines up with the stage
+## at rest and slides past faster when the camera moves. 屏幕层 (`screen_fx`) is fixed to the
+## screen (captions, impact frames). 远景 belongs to the game's own background.
+const NEAR_PARALLAX := 1.3
+var near_layer: CanvasLayer
+var near_fx: Node2D
+var screen_layer: CanvasLayer
+var screen_fx: Node2D
+## Effects drawn behind the attacker and target.
+var back_fx: Node2D
+## Persistent groups indexed by their event id.
+var actors := {}
+## 黑边: cinema bars in 屏幕层, style.json "letterbox" (share of the screen height, each).
+var _bars: Array[ColorRect] = []
 
 class Marker extends Node2D:
 	## The abstract attacker: a diamond core with a ground shadow.
@@ -121,6 +147,8 @@ func _ready() -> void:
 	_camera.position = Vector2(640, 360)
 	add_child(_camera)
 	if not Engine.is_editor_hint(): _camera.make_current()
+	back_fx = Node2D.new()
+	add_child(back_fx)
 	target = Block.new()
 	add_child(target)
 	attacker = Marker.new()
@@ -129,6 +157,22 @@ func _ready() -> void:
 	fx = Node2D.new()
 	fx.z_index = 5
 	add_child(fx)
+	near_layer = CanvasLayer.new()
+	near_layer.layer = 2
+	add_child(near_layer)
+	near_fx = Node2D.new()
+	near_layer.add_child(near_fx)
+	screen_layer = CanvasLayer.new()
+	screen_layer.layer = 15
+	add_child(screen_layer)
+	screen_fx = Node2D.new()
+	screen_layer.add_child(screen_fx)
+	for i in 2:
+		var bar := ColorRect.new()
+		bar.color = Color("040207")
+		bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		screen_layer.add_child(bar)
+		_bars.append(bar)
 	counter = Label.new()
 	counter.add_theme_font_size_override("font_size", 40)
 	counter.add_theme_color_override("font_outline_color", ComboStyle.c("outline"))
@@ -156,8 +200,13 @@ func reset() -> void:
 	_target_velocity = Vector2.ZERO
 	_target_flash = 0.0
 	_counter_age = 99.0
-	for child in fx.get_children(): child.free()
-	for child in attacker.get_children(): child.free()
+	for holder in effect_holders(): for child in holder.get_children(): child.free()
+	actors.clear()
+	var bar := clampf(float(ComboStyle.data.get("letterbox", 0.0)), 0.0, 0.3) * 720.0
+	for i in 2:
+		_bars[i].visible = bar > 0.0
+		_bars[i].position = Vector2(0, 0 if i == 0 else 720.0 - bar)
+		_bars[i].size = Vector2(1280, bar)
 	attacker.position = ATTACKER_START
 	target.position = TARGET_START
 	_view = {}
@@ -183,6 +232,19 @@ func _unhandled_input(event: InputEvent) -> void:
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint(): return
 	advance(delta * speed)
+	update_layers()
+
+## Every node whose children are running effects, in drawing order.
+func effect_holders() -> Array[Node]:
+	return [back_fx, fx, attacker, near_fx, screen_fx]
+
+## Places 近景 from the stage camera (zoom, centre, shake offset) with extra parallax.
+func update_layers() -> void:
+	var zoom := _camera.zoom.x
+	var centre := _camera.get_screen_center_position()
+	var near_zoom := 1.0 + (zoom - 1.0) * NEAR_PARALLAX
+	var near_centre := Vector2(640, 360) + (centre - Vector2(640, 360)) * NEAR_PARALLAX
+	near_layer.transform = Transform2D(0.0, Vector2.ONE * near_zoom, 0.0, Vector2(640, 360) - near_centre * near_zoom)
 
 ## Steps the whole demo; tests call this directly.
 func advance(delta: float) -> void:
@@ -203,11 +265,11 @@ func advance(delta: float) -> void:
 			_fire(TIMELINE[_next])
 			_next += 1
 			if _stop > 0.0: break
-		if _next >= TIMELINE.size() and (TIMELINE.is_empty() or clock > TIMELINE[-1].t + SETTLE): playing = false
+		if _next >= TIMELINE.size() and (TIMELINE.is_empty() or clock > maxf(float(TIMELINE[-1].t) + SETTLE, clock_end())): playing = false
 	_update_moves(delta)
 	_update_view(delta)
 	_update_target(delta)
-	for holder in [fx, attacker]:
+	for holder in effect_holders():
 		for part in holder.get_children():
 			if not part.has_method("advance"): continue
 			part.advance(delta)
@@ -216,18 +278,33 @@ func advance(delta: float) -> void:
 
 func is_settled() -> bool:
 	if playing or target.position.y < GROUND_Y or not is_zero_approx(_target_velocity.x): return false
-	for holder in [fx, attacker]:
+	for holder in effect_holders():
 		for part in holder.get_children():
 			if not part.is_queued_for_deletion(): return false
 	return true
 
 func _fire(event: Dictionary) -> void:
 	match event.do:
+		"caption": screen_fx.add_child(preload("res://vfx/caption_effect.gd").new().configure(event))
+		"impact": screen_fx.add_child(preload("res://vfx/impact_effect.gd").new().configure(event))
+		"swarm":
+			# 群体 in 近景: the first event with an id creates the swarm, later ones morph it.
+			var id := String(event.get("id", "group"))
+			var swarm: Variant = actors.get(id)
+			if swarm != null and is_instance_valid(swarm) and not swarm.is_queued_for_deletion() and not swarm.is_done():
+				swarm.morph(event)
+			else:
+				swarm = preload("res://vfx/swarm_effect.gd").new()
+				near_fx.add_child(swarm)
+				swarm.configure(event, self)
+				actors[id] = swarm
+		"quake":
+			fx.add_child(preload("res://vfx/quake_effect.gd").new().configure(event))
 		"slash":
 			attacker.add_child(PixelSlash.new().configure({"shape": &"crescent", "radius": float(event.radius),
 				"squash": float(event.get("squash", 1.0)), "tilt": deg_to_rad(float(event.get("tilt", 0.0))),
 				"start_angle": deg_to_rad(float(event.from)), "end_angle": deg_to_rad(float(event.to)),
-				"width": float(event.width), "duration": 0.045, "hold": 0.04, "fade": 0.13,
+				"width": float(event.width), "duration": float(event.get("duration", 0.045)), "hold": 0.04, "fade": float(event.get("fade", 0.13)),
 				"line_gap": 6.0, "line_width": 5.0, "palette": event.palette}))
 		"move":
 			_moves.append({"from": attacker.position, "to": attacker.position + event.by, "age": 0.0, "time": float(event.time)})

@@ -1,0 +1,84 @@
+{
+  "name": "秋叶流转",
+  "events": [
+    {
+      "t": 0.2,
+      "do": "swarm",
+      "id": "leaves",
+      "material": "leaf",
+      "form": "cloud",
+      "at": [
+        400,
+        330
+      ],
+      "ramp": "autumn",
+      "count": 900,
+      "radius": 140,
+      "height": 180,
+      "seed": 17
+    },
+    {
+      "t": 1.2,
+      "do": "swarm",
+      "id": "leaves",
+      "form": "stream",
+      "time": 0.7,
+      "travel": 1.7,
+      "path": [
+        [
+          300,
+          360
+        ],
+        [
+          450,
+          180
+        ],
+        [
+          650,
+          260
+        ],
+        [
+          820,
+          380
+        ],
+        [
+          960,
+          290
+        ]
+      ]
+    },
+    {
+      "t": 3.0,
+      "do": "swarm",
+      "id": "leaves",
+      "form": "vortex",
+      "at": [
+        800,
+        520
+      ],
+      "time": 0.6,
+      "radius": 180,
+      "height": 300
+    },
+    {
+      "t": 4.4,
+      "do": "swarm",
+      "id": "leaves",
+      "form": "fall",
+      "at": [
+        700,
+        300
+      ],
+      "time": 0.6,
+      "radius": 560,
+      "height": 320
+    },
+    {
+      "t": 6,
+      "do": "swarm",
+      "id": "leaves",
+      "form": "gone",
+      "time": 0.8
+    }
+  ]
+}

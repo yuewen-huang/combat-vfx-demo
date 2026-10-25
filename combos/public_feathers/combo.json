@@ -1,0 +1,49 @@
+{
+  "name": "轻羽聚散",
+  "events": [
+    {
+      "t": 0.2,
+      "do": "swarm",
+      "id": "feathers",
+      "material": "feather",
+      "form": "sphere",
+      "at": [
+        700,
+        320
+      ],
+      "count": 700,
+      "radius": 180,
+      "ramp": "ivory",
+      "time": 0.8,
+      "seed": 23
+    },
+    {
+      "t": 2,
+      "do": "swarm",
+      "id": "feathers",
+      "form": "burst",
+      "radius": 540,
+      "time": 0.35
+    },
+    {
+      "t": 3,
+      "do": "swarm",
+      "id": "feathers",
+      "form": "fall",
+      "at": [
+        640,
+        290
+      ],
+      "radius": 550,
+      "height": 330,
+      "time": 0.7
+    },
+    {
+      "t": 5.4,
+      "do": "swarm",
+      "id": "feathers",
+      "form": "gone",
+      "time": 0.9
+    }
+  ]
+}

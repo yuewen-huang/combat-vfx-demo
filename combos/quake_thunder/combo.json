@@ -1,0 +1,17 @@
+{
+  "name": "单向落雷",
+  "events": [
+    {
+      "t": 0.2,
+      "do": "quake",
+      "unit": "thunder",
+      "mode": "sweep",
+      "reverse": false,
+      "x": 760,
+      "y": 520,
+      "width": 310,
+      "length": 120,
+      "seed": 17
+    }
+  ]
+}

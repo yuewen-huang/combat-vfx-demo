@@ -1,0 +1,17 @@
+{
+  "name": "岩土冲击",
+  "events": [
+    {
+      "t": 0.2,
+      "do": "quake",
+      "unit": "earth",
+      "mode": "radial",
+      "reverse": false,
+      "x": 760,
+      "y": 520,
+      "width": 310,
+      "length": 0,
+      "seed": 17
+    }
+  ]
+}
